@@ -59,6 +59,14 @@ func handleMoviesRequests(rs *rand.Rand, gradualMigration bool, moviesMigrationP
 
 		proxyToService(monolithUrl, w, r)
 	})
+
+	http.HandleFunc("/api/movies/health", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("🎥 Proxy movies request to Movies Service:", r.Method, r.URL.Path)
+
+		proxyToService(moviesServiceUrl, w, r)
+
+		return
+	})
 }
 
 func handleEventsRequests(eventsServiceUrl string) {
@@ -90,7 +98,8 @@ func proxyToService(rawUrl string, w http.ResponseWriter, r *http.Request) {
 
 func useProxyToMovieService(rs *rand.Rand, gradualMigration bool, moviesMigrationPercent int64) bool {
 	if !gradualMigration {
-		return false
+		// Если флаг выключен, маршрутизируем весь трафик в соответствующий микросервис
+		return true
 	}
 
 	if moviesMigrationPercent > 100 {
