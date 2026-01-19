@@ -1,0 +1,54 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title "Диаграмма контейнеров системы Cinema Abyss"
+
+Person(user, "User", "Пользователь системы CinemaAbyss")
+
+System_Boundary(system, "CinemaAbyss System") {
+    Container(proxy, "Proxy Service (API Gateway)", "Go", "Единая точка входа для всех запросов в сервисы")
+    Container(movies, "Movies Service", "Go", "Сервис, управляющий данными фильмов, их жанров и рейтингов")
+    Container(users, "Users Service", "Go", "Сервис, управляющий данными пользователей")
+    Container(favorites, "Users Favorites Service", "Go", "Сервис с избранными фильмами пользователей")
+    Container(payments, "Payments Service", "Go", "Сервис, управляющий платежами")
+    Container(events, "Events Service", "Go", "Обработка доменных событий, связанные с пользователями, фильмами и платежами, и интеграция с внешними сервисами")
+    Container(subscriptions, "Subscriptions Service", "Go", "Обработка подписок пользователей")
+
+    ContainerQueue(kafka, "Kafka", "Kafka", "Event streaming platform")
+
+    ContainerDb(moviesDb, "Movies Database", "postgres", "База данных сервиса фильмов")
+    ContainerDb(usersDb, "Users Database", "postgres", "База данных пользователей")
+    ContainerDb(paymentsDb, "Payments Database", "postgres", "База данных сервиса платежей")
+    ContainerDb(favoritesDb, "Users Favorites Database", "postgres", "База данных c избранным пользователей")
+    ContainerDb(subscriptionsDb, "Subscriptions Database", "postgres", "База данных c подписками и скидками пользователей")
+}
+
+Container_Ext(recommendedSystem, "Рекомендательная система", "Go", "Выполняет подборку кинофильмов в соответствии с предпочтениями пользователя")
+ContainerQueue_Ext(recommendedSystemQueue, "Очередь рекомендательной системы", "RabbitMQ", "Публикация и обработка сообщений внешней рекомендательной системы")
+
+Rel(user, proxy, "Uses", "HTTP")
+
+Rel(proxy, movies, "Routes requests", "HTTP")
+Rel(proxy, users, "Routes requests", "HTTP")
+Rel(proxy, payments, "Routes requests", "HTTP")
+Rel(proxy, favorites, "Routes requests", "HTTP")
+Rel(proxy, subscriptions, "Routes requests", "HTTP")
+
+Rel(movies, moviesDb, "Управление данными сущностей сервиса фильмов")
+Rel(users, usersDb, "Управление данными пользователей")
+Rel(payments, paymentsDb, "Управление данными платежей")
+Rel(favorites, favoritesDb, "Управление данными избранного пользователей")
+Rel(subscriptions, subscriptionsDb, "Управление данными подписок и скидок пользователей")
+
+Rel(recommendedSystem, recommendedSystemQueue, "Публикует и обрабатывает события", "RabbitMQ Protocol")
+
+Rel(movies, kafka, "Публикует события", "Kafka")
+Rel(users, kafka, "Публикует события", "Kafka")
+Rel(payments, kafka, "Публикует события", "Kafka")
+Rel(favorites, kafka, "Публикует события", "Kafka")
+Rel(subscriptions, kafka, "Публикует события", "Kafka")
+
+Rel(events, kafka, "Публикует и обрабатывает события", "Kafka protocol")
+Rel(events, recommendedSystemQueue, "Публикует и обрабатывает события", "AMQP")
+
+@enduml

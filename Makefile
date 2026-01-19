@@ -37,3 +37,6 @@ deploy-ingress:
 kube-clean:
 	kubectl delete all --all -n cinemaabyss
 	kubectl delete namespace cinemaabyss
+
+diagrams-generate:
+	  $(RM) $(PWD)/diagrams/*.png && java -jar plantuml.jar $(PWD)/diagrams/*.puml

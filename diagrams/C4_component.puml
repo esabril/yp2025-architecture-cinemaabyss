@@ -1,0 +1,26 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Упрощенная диаграмма компонента API Gateway для системы Cinema Abyss"
+
+Container_Boundary(proxy, "Proxy Service (API Gateway)") {
+    Component(router, "Request Router", "HTTP Handler", "Принимает входящие HTTP-запросы")
+    Component(decider, "Routing Decision Engine", "Domain Logic", "Компонент, принимающий решение о маршрутизации запросов к соответствующим сервисам")
+    Component(config, "Routing Configuration", "Config / Feature Flags", "Конфигурация правил для маршрутизации, управление feature flag-ами")
+    Component(monolithClient, "Monolith Client", "HTTP Client", "Отправка запросов к монолиту")
+    Component(moviesClient, "Movies Service Client", "HTTP Client", "Отправка запросов к сервису кинофильмов")
+    Component(usersClient, "Movies Service Client", "HTTP Client", "Отправка запросов к сервису кинофильмов")
+}
+
+Rel(router, decider, "Делегирует принятие решения о маршрутизации")
+Rel(decider, config, "Чтение конфигурации")
+
+Rel(decider, monolithClient, "Отправка запроса")
+Rel(decider, moviesClient, "Отправка запроса")
+Rel(decider, usersClient, "Отправка запроса")
+
+Rel(monolithClient, router, "Возвращает HTTP-ответ")
+Rel(moviesClient, router, "Возвращает HTTP-ответ")
+Rel(usersClient, router, "Возвращает HTTP-ответ")
+
+@enduml
